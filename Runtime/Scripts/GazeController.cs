@@ -8,12 +8,12 @@ namespace Volorf.GazeController
         [SerializeField] private Direction targetDirection = Direction.Forward;
         
         [Space(5)] [Header("Elements")] 
-        public Transform target;
         public Transform head;
+        public Transform target;
 
         [Space(5)] [Header("Trigger Settings")] 
-        [SerializeField] private float lookAtTrigger = 0.8f;
-        [SerializeField] private float lookAwayTrigger = 0.6f;
+        [SerializeField] private float lookAtAngle = 30f;
+        [SerializeField] private float lookAwayAngle = 60f;
         [SerializeField] private bool hideAtStart;
 
         [Space(5)] [Header("Events")] 
@@ -21,7 +21,8 @@ namespace Volorf.GazeController
         public UnityEvent onHide;
 
         [Space(5)] [Header("Debugging")] 
-        [SerializeField] private bool printDotProduct;
+        [SerializeField] private bool printAngle;
+        [SerializeField] private bool printEvents;
         
         bool _hasBeenShown;
         bool _hasBeenShownForSecond;
@@ -47,25 +48,30 @@ namespace Volorf.GazeController
             
             Vector3 targetDir = _targetDir;
             Vector3 dirToHead = head.position - target.position;
-            float dotProd = Vector3.Dot(targetDir, dirToHead.normalized);
-            
-            if (printDotProduct) Debug.Log($"Dot product: {dotProd}");
+            float angle = Vector3.Angle(dirToHead, targetDir);
 
-            if (dotProd > lookAtTrigger)
+            if (printAngle)
+            {
+                Debug.Log($"Angle: {angle}");
+            }
+
+            if (angle < lookAtAngle)
             {
                 if (!_hasBeenShown)
                 {
                     onShow.Invoke();
                     _hasBeenShown = true;
+                    if (printEvents) Debug.Log($"Looking at");
                 }
             }
 
-            if (dotProd < lookAwayTrigger)
+            if (angle > lookAwayAngle)
             {
                 if (_hasBeenShown)
                 {
                     onHide.Invoke();
                     _hasBeenShown = false;
+                    if (printEvents) Debug.Log($"Looking away");
                 }
             }
         }
